@@ -161,7 +161,12 @@ if __name__ == "__main__":
 
     if "unknown" in companies:
         print('\n-------')
-        print("Company called 'unknown' found in settings.json. This is a reserved word and cannot be used. Please rename the company and try again.")
+        print(
+                "\033[91mCompany called 'unknown' found in settings.json.\n"
+                "This is a reserved word and cannot be used.\n"
+                "Please rename the company and try again.\033[0m"
+            )
+
         print('-------\n')
         exit()
 
