@@ -30,26 +30,27 @@ def get_csvs(directory):
     return csv_file_paths
 
 
-# get all lines in csv file ignoring header
-def process_csv_file(file_path):
+# get all lines in csv file dropping all headers one
+def process_csv_file(file_path, columns_to_keep=['Email']):
     if not check_csv_file(file_path):
         print(f"File '{file_path}' is not a CSV file.")
         return []
 
-    items = []
+    emails = []
 
     # Open the CSV file
     with open(file_path, 'r') as file:
-        csv_reader = csv.reader(file)
+        csv_reader = csv.DictReader(file)
 
-        # Skip the header line
-        next(csv_reader)
+        # Iterate over each row
+        for row in csv_reader:
+            # Filter the row to keep only the desired columns
+            filtered_row = {column: row[column] for column in columns_to_keep}
 
-        # Append each item to the list
-        for line in csv_reader:
-            items.append(line[0])
+            # Append the email to the list
+            emails.append(filtered_row[columns_to_keep.__getitem__(0)])
 
-    return items
+    return emails
 
 
 # get file name without extension
@@ -127,6 +128,12 @@ def write_list_to_csv(list, file_path, headers=[]):
         for item in list:
             writer.writerows([[item]])
 
+# get all domains from companies
+def get_all_domains(settings):
+    domains = []
+    for company in settings['companies']:
+        domains.extend(settings['companies'][company])
+    return domains
 
 def print_title(file):
     if os.path.isfile(file):
@@ -146,10 +153,17 @@ if __name__ == "__main__":
 
     csvs = get_csvs(input_path)
     settings = import_settings('settings.json')
+    all_domains = get_all_domains(settings)
     domain_drop_list = settings['domain_drop_list']
     email_drop_list = settings['email_drop_list']
     companies = list(settings['companies'].keys())
     totals = {}
+
+    if "unknown" in companies:
+        print('\n-------')
+        print("Company called 'unknown' found in settings.json. This is a reserved word and cannot be used. Please rename the company and try again.")
+        print('-------\n')
+        exit()
 
     print('\n-------\n')
     print(f"Found {len(csvs)} CSV files.")
@@ -187,17 +201,27 @@ if __name__ == "__main__":
 
         for company in companies:
             output_file = f"{output_path}/{filename}_{company}.csv"
+            unknown_output_file = f"{output_path}/{filename}_unknown.csv"
             domains = get_domains(settings, [company])
             emails = []
+            unknown_emails = []
             count = 0
 
             for email in clean_emails:
                 if parse_domain(email) in domains:
                     count += 1
                     emails.append(email)
+                else:
+                    if not parse_domain(email) in all_domains:
+                        unknown_emails.append(email)
 
             totals[f"{filename}_{company}"] = count
+            unknown_count = unknown_emails.__len__()
+            if unknown_count > 0:
+                totals[f"{filename}_unknown"] = unknown_count
             write_list_to_csv(emails, output_file, ['email'])
+            if unknown_emails.__len__() > 0:
+                write_list_to_csv(unknown_emails, unknown_output_file, ['email'])
 
         print(f" - {processed_count} emails processed.")
         print(f" - {drop_count} emails dropped.")
