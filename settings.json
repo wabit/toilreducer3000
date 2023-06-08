@@ -1,0 +1,26 @@
+{
+  "companies": {
+    "companyA": [
+      "hotmail.com",
+      "gmail.com"
+    ],
+    "companyB": [
+      "gmail.com",
+      "google.com"
+    ],
+    "companyC": [
+      "aol.com",
+      "hotmail.com"
+    ]
+  },
+  "domain_drop_list": [
+    "bad.com",
+    "reallybad.com"
+  ],
+  "email_drop_list": [
+    "dropme@hotmail.com",
+    "dropme@gmail.com",
+    "dropme@google.com",
+    "dropme@aol.com"
+  ]
+}
